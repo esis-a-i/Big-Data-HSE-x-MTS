@@ -140,33 +140,34 @@ sudo adduser hadoop
     ```
     
 6. Настройте `yarn-site.xml`:
-    
-    ```xml
-    <configuration>
-	<property>
-	    <name>yarn.nodemanager.aux-services</name>
-	    <value>mapreduce_shuffle</value>
-	</property>
-	<property>
-	    <name>yarn.nodemanager.env-whitelist</name>
-	    <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ,HADOOP_MAPRED_HOME</value>
-	</property>
-    </configuration>
-    ```
-    
+
+```xml
+<configuration>
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.env-whitelist</name>
+        <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ,HADOOP_MAPRED_HOME</value>
+    </property>
+</configuration>
+```
+
 7. Настройте `mapred-site.xml`:
-    
-    ```xml
+
+```xml
 <configuration>
     <property>
         <name>mapreduce.framework.name</name>
         <value>yarn</value>
     </property>
     <property>
-        <name>mapreduce.application.classpath</name><value>$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*</value>
+        <name>mapreduce.application.classpath</name>
+        <value>$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*</value>
     </property>
 </configuration>
-    ```
+```
     
 8. Убедитесь в том, что файл `workers` содержит имена ваших DataNode:
     
