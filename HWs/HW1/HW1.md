@@ -47,7 +47,7 @@ sudo adduser hadoop
     cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
     ```
 
-Теперь выполните следующие шаги на всех остальных узлах, чтобы скопировать публичный ключ:
+Теперь выполните предыдущие шаги на всех остальных узлах, чтобы скопировать публичный ключ:
 
 5. Скопируйте SSH-ключи на другие узлы (замените `team-1-xn` на соответствующие имена узлов):
     
@@ -139,37 +139,7 @@ sudo adduser hadoop
     </configuration>
     ```
     
-6. Настройте `yarn-site.xml`:
-
-```xml
-<configuration>
-    <property>
-        <name>yarn.nodemanager.aux-services</name>
-        <value>mapreduce_shuffle</value>
-    </property>
-    <property>
-        <name>yarn.nodemanager.env-whitelist</name>
-        <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ,HADOOP_MAPRED_HOME</value>
-    </property>
-</configuration>
-```
-
-7. Настройте `mapred-site.xml`:
-
-```xml
-<configuration>
-    <property>
-        <name>mapreduce.framework.name</name>
-        <value>yarn</value>
-    </property>
-    <property>
-        <name>mapreduce.application.classpath</name>
-        <value>$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*</value>
-    </property>
-</configuration>
-```
-    
-8. Убедитесь в том, что файл `workers` содержит имена ваших DataNode:
+6. Убедитесь в том, что файл `workers` содержит имена ваших DataNode:
     
     ```bash
     vim workers
@@ -206,7 +176,6 @@ sudo -u hadoop hdfs namenode -format
 
 ```bash
 sudo -u hadoop /usr/local/hadoop/sbin/start-dfs.sh
-sudo -u hadoop /usr/local/hadoop/sbin/start-yarn.sh
 ```
 
 Проверьте статус запущенных процессов:
@@ -219,60 +188,27 @@ jps
 
 #### Шаг 9: Установка и настройка Nginx
 
-1. Установите Nginx:
+1. Установите Nginx на jump ноде:
     
     ```bash
     sudo apt install nginx -y
     ```
     
-2. Настройте конфигурацию Nginx для YARN. Создайте файл конфигурации для YARN:
+2. Настройте конфигурацию Nginx для HDFS. Создайте файл конфигурации для HDFS:
     
     ```bash
-    sudo vim /etc/nginx/sites-available/yarn
+    sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/hdfs
+    sudo vim /etc/nginx/sites-available/hdfs
     ```
     
     Добавьте следующее:
     
     ```nginx
     server {
-        listen 80;
-        server_name your_yarn_server_domain_or_ip;
+        listen 9870 default_server;
     
         location / {
-            proxy_pass http://localhost:8088;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-    ```
-    
-    Создайте символическую ссылку:
-    
-    ```bash
-    sudo ln -s /etc/nginx/sites-available/yarn /etc/nginx/sites-enabled/
-    ```
-    
-3. Для HDFS создайте еще одну конфигурацию:
-    
-    ```bash
-    sudo vim /etc/nginx/sites-available/hdfs
-    ```
-    
-    Содержимое файла:
-    
-    ```nginx
-    server {
-        listen 80;
-        server_name your_hdfs_server_domain_or_ip;
-    
-        location / {
-            proxy_pass http://localhost:9870;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_pass http://team-1-nn:9870;
         }
     }
     ```
@@ -283,7 +219,7 @@ jps
     sudo ln -s /etc/nginx/sites-available/hdfs /etc/nginx/sites-enabled/
     ```
     
-4. Перезапустите Nginx:
+3. Перезапустите Nginx:
     
 
 ```bash
@@ -292,7 +228,6 @@ sudo systemctl restart nginx
 
 #### Шаг 10: Проверка установки
 
-Проверьте YARN и HDFS через веб-браузер по следующим адресам:
+Проверьте HDFS через веб-браузер по следующим адресам:
 
-- YARN: `http://your_yarn_server_domain_or_ip`
-- HDFS: `http://your_hdfs_server_domain_or_ip`
+- HDFS: `http://176.109.91.26:9870`
